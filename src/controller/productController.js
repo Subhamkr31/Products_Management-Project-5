@@ -100,6 +100,8 @@ const createProduct = async (req, res) => {
                 }
             }
             data.availableSizes = data.availableSizes.split(" ")
+            data.availableSizes = [...new Set(data.availableSizes)]   // remove deplictae element
+            // console.log( data.availableSizes)
         }
 
         if (installments) {
@@ -177,7 +179,6 @@ const getproductbyfilter = async function (req, res) {
         }
 
         // console.log(filter)
-
         let allproduct = await productModel.find({ $and: [{ isDeleted: false }, filter] }).sort({ price: pricesort })
 
         if (allproduct.length == 0)
@@ -215,7 +216,7 @@ const getProductById = async function (req, res) {
         return res.status(200).send({ status: true, message: 'Success', data: findInDB })
 
     } catch (err) {
-        // console.log("This is the error :", err.message);
+       
         res.status(500).send({ msg: "Error", error: err.message });
     }
 
@@ -327,7 +328,7 @@ const updateProductDetail = async function (req, res) {
         if (availableSizes) {
             updatedData.availableSizes = availableSizes.toUpperCase()
             let check = updatedData.availableSizes.split(" ")
-            // console.log(checkProduct.availableSizes);
+         
             for (let i = 0; i < check.length; i++) {
 
                 if (!(["S", "XS", "M", "X", "L", "XXL", "XL"].includes(check[i]))) {
@@ -339,6 +340,8 @@ const updateProductDetail = async function (req, res) {
             }
 
             updatedData.availableSizes = updatedData.availableSizes.split(" ")
+            updatedData.availableSizes = [...new Set(updatedData.availableSizes)] 
+            
         }
 
         //---------  installments-------        
@@ -368,7 +371,6 @@ const updateProductDetail = async function (req, res) {
     }
 }
 
-
 //=/=/=/=/=/=/=/=/=/=/=/=/=/=/= deleteProductById =/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/
 
 const deleteProductById = async function (req, res) {
@@ -379,7 +381,6 @@ const deleteProductById = async function (req, res) {
         if (!mongoose.isValidObjectId(productId)) {
             return res.status(400).send({ status: false, message: "Please enter The Valid productId" })
         }
-
         const findInDB = await productModel.findById(productId)
         if (!findInDB) {
             return res.status(404).send({ status: false, message: "No such Product with that productId" })
@@ -390,7 +391,7 @@ const deleteProductById = async function (req, res) {
         const deleteInDB = await productModel.findByIdAndUpdate({ _id: productId }, { isDeleted: true, deletedAt: Date.now() }, { new: true })
         return res.status(200).send({ status: true, message: "Product removed successfully" })
     } catch (err) {
-        // console.log("This is the error :", err.message);
+   
         res.status(500).send({ msg: "Error", error: err.message });
     }
 }

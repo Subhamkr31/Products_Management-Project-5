@@ -53,7 +53,7 @@ const createUser = async function (req, res) {
     if (!isValidData(email)) { return res.status(400).send({ status: false, message: "please enter email" }); }
 
     if (!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(email)) {
-      return res.status(400).send({ status: false, message: ` This email is not a valid email` });
+      return res.status(400).send({ status: false, message: ` This is not a valid email address` });
     }
 
     let checkEmail = await userModel.findOne({ email: email });
@@ -83,7 +83,7 @@ const createUser = async function (req, res) {
       return res.status(400).send({ status: false, message: "please enter your mobile number" });
     }
     if (!/^\s*(?=[6789])[0-9]{10}\s*$/.test(phone)) {
-      return res.status(400).send({ status: false, message: `phone number is not a valid phone` });
+      return res.status(400).send({ status: false, message: `This is not a valid phone number` });
     }
     let checkPhone = await userModel.findOne({ phone: phone });
     if (checkPhone) {
@@ -115,7 +115,7 @@ const createUser = async function (req, res) {
     } catch {
       return res.status(400).send({ message: "please enter valid details or valid pincode" });
     }
-    if (!data.address.shipping) {             // no work
+    if (!data.address.shipping) {         
       return res.status(400).send({ status: false, msg: "please add shipping details  " });
     }
 
@@ -224,8 +224,7 @@ const getUser = async function (req, res) {
       return res.status(404).send({ status: false, message: "no User found" })
     }
     //----------authorisation---------------------------------------------
-    if (userId != req.userDetail)
-      return res.status(403).send({ status: false, message: "you are not Authorised" })
+    if (userId != req.userDetail) return res.status(403).send({ status: false, message: "you are not Authorised" })
     //-------------------------------------------------------------------
 
     res.status(200).send({ status: true, message: "User profile details", data: getUser })
@@ -265,8 +264,7 @@ const updateUserDetail = async (req, res) => {
 
     //----------authorisation---------------------------------------------
 
-    if (userId != req.userDetail)
-      return res.status(403).send({ status: false, message: "you are not Authorised" })
+    if (userId != req.userDetail) return res.status(403).send({ status: false, message: "you are not Authorised" })
     //--------------------------------------------------------------------
 
     if (fname == 0) return res.status(400).send({ status: false, message: "fname is empty" })

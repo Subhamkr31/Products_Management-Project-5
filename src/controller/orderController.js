@@ -19,7 +19,7 @@ const createOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: " please provide me UserId" })
         }
         if (!mongoose.isValidObjectId(userId)) {
-            return res.status(400).send({ status: false, message: ` ${userId} it's not valid UserId Please check Ones` })
+            return res.status(400).send({ status: false, message: `${userId} it's not valid UserId Please check Ones` })
         }
 
         const userData = await userModel.findById(userId)
@@ -75,18 +75,9 @@ const createOrder = async function (req, res) {
                 if (!/(?:true|false|True|False)/.test(req.body.cancellable)) return res.status(400).send({ status: false, message: `cancellable can't be ${isFreeShipping} ..! please add True or False` })
                 data.cancellable = req.body.cancellable
             }
-        } else {
-            data.cancellable = true
-        }
-
-        data.status = 'pending'
-
-        let empItems = {}
-        empItems.items = []
-        empItems.totalPrice = 0
-        empItems.totalItems = 0
-
-        const clrItems = await cartModel.findOneAndUpdate({ _id: cartData }, empItems, { new: true })
+        } 
+       
+       const clrItems = await cartModel.findOneAndUpdate({ _id: cartData }, {$set:{items:[],totalPrice:0,totalItems:0}}, { new: true })
 
         const createOrderinDB = await orderModel.create(data)
         delete createOrderinDB._doc.deletedAt
