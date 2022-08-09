@@ -1,3 +1,8 @@
+// Post api cart //
+// Put api by path params -- cart //
+// Get api by path params -- cart //
+// delete api by path params -- cart //
+
 const userModel = require("../model/userModel")
 const cartModel = require("../model/cartModel")
 const productModel = require("../model/productModel")
@@ -66,8 +71,6 @@ const createCart = async (req, res) => {
                 let NewproductAdd = await cartModel.findOneAndUpdate({ userId: userId }, { $push: { items: { productId, quantity: +1 } }, totalPrice: newCart.totalPrice + findproduct.price, totalItems: newCart.totalItems + 1 }, { new: true })
                 return res.status(200).send({ status: true, message: 'Success', data: NewproductAdd })
             }
-
-
         }
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message })
@@ -104,7 +107,7 @@ const updateCart = async function (req, res) {
 
         //<-------- Authorisation ------------------>
         if (userId != req.userDetail) {
-            return res.status(403).send({ status: false, message: `Heeyyy...Spam! you are not authorised to update the cart Items` })
+            return res.status(403).send({ status: false, message: `you are not authorised to update the cart Items` })
         }
 
         //<-------- cartId Validation ----->
@@ -229,7 +232,7 @@ const getCart = async function (req, res) {
 
         //<-------- Authorisation ------------------>
         if (userId != req.userDetail) { return res.status(403).send({ status: false, message: "you are not Authorised" }) }
-
+        // ----------------------------------------->
         let checkCart = await cartModel.findOne({ userId: userId })
         // console.log(checkCart)
         if (!checkCart) { return res.status(404).send({ status: false, message: " cart not Found" }) }
@@ -251,11 +254,11 @@ const deleteCart = async function (req, res) {
             return res.status(400).send({ status: false, message: "Enter the Valid UserID" })
         }
         let findUser = await userModel.findOne({ _id: userId })
-        if (!findUser) { return res.status(404).send({ status: false, message: " User is not Found" }) }
+        if (!findUser) { return res.status(404).send({ status: false, message: "User is not Found" }) }
 
         //<-------- Authorisation ------------------>
         if (userId != req.userDetail) { return res.status(403).send({ status: false, message: "you are not Authorised" }) }
-
+        // ----------------------------------------->
         let checkCart = await cartModel.findOne({ userId: userId })
 
         if (!checkCart) { return res.status(404).send({ status: false, message: "Cart not Found" }) }

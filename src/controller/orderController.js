@@ -1,3 +1,6 @@
+// Post api order //
+// Put api by path params -- order //
+
 const orderModel = require("../model/orderModel")
 const userModel = require("../model/userModel")
 const cartModel = require("../model/cartModel")
@@ -19,7 +22,7 @@ const createOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: `Heeyyy... user! ${userId} it's not valid UserId Please check Ones` })
         }
 
-        const userData = await userModel.findById(userId.toString())
+        const userData = await userModel.findById(userId)
 
         if (!userData) {
             return res.status(404).send({ status: false, message: `Heeyyy...! There is No user With the ${userId} userId` })
@@ -40,7 +43,7 @@ const createOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: `Heeyyy... user! ${cartId} it's not valid cartId Please check Ones` })
         }
 
-        const cartData = await cartModel.findById(cartId.toString())
+        const cartData = await cartModel.findById(cartId)
 
         if (!cartData) {
             return res.status(404).send({ status: false, message: `Heeyyy...! There is No cart With the ${cartId} cartId please create cart` })
@@ -112,13 +115,16 @@ const updateOrder = async function (req, res) {
 
         if (!userdb) return res.status(404).send({ status: false, message: "user is not present" })
 
+         //<-------- Authorisation ------------------>
         if (userId != req.userDetail) return res.status(403).send({ status: false, message: "user not Authorized to place order " })
 
         if (!orderId) return res.status(400).send({ status: false, message: "please enter orderId in body" })
 
         if (!mongoose.isValidObjectId(orderId)) return res.status(400).send({ status: false, message: "please enter valid OrderId " })
+
         if (!status) return res.status(400).send({ status: false, message: "Status is required.." })
         status = status.trim()
+        
         if (!["completed", "cancled"].includes(status)) return res.status(400).send({ status: false, message: "choose one of these (completed or cancled)" })
 
         const orderdb = await orderModel.findOne({ _id: orderId })

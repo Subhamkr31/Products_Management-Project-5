@@ -1,49 +1,24 @@
+// Post api product //
+// Get api by query params product //
+// Get api by path params -- productId //
+// Put api by path params -- productId //
+// delete api by path params -- productId //
+
 const productModel = require("../model/productModel")
 const mongoose = require("mongoose");
-const aws = require("aws-sdk");
-
-//=/=/=/=/=/=/=  AWS (Connection & uplode Function) =/=/=/=/=/=/=/=/=/=/=/=/
-
-aws.config.update({
-    accessKeyId: "AKIAY3L35MCRVFM24Q7U",
-    secretAccessKey: "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",
-    region: "ap-south-1"
-})
-
-let uploadFile = async (file) => {
-    return new Promise(function (resolve, reject) {
-        // this function will upload file to aws and return the link
-        let s3 = new aws.S3({ apiVersion: '2006-03-01' }); // we will be using the s3 service of aws
-
-        var uploadParams = {
-            ACL: "public-read",
-            Bucket: "classroom-training-bucket",  //HERE
-            Key: "abc/" + file.originalname, //HERE 
-            Body: file.buffer
-        }
-
-        s3.upload(uploadParams, function (err, data) {
-            if (err) {
-                return reject({ "error": err })
-            }
-            console.log("file uploaded succesfully")
-            return resolve(data.Location)
-        })
-    })
-}
+const {uploadFile} = require("../aws/uploadFile")
 
 
-//=/=/=/=/=/=/=/=/=/=/=/ =/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/ 
-
+////////////---------------------------------------------------------------
 const isValidData = function (value) {
     if (typeof value === "undefined" || value === null) return false;
     if (typeof value === "string" && value.trim().length == 0) return false;
     return true;
 };
+//////////----------------------------------------------------------------  
 
 
-//=/=/=/=/=/=/=/=/=/=/=/=/=/=/= createProduct =/=/=/=/=/=/=/=/=/
-
+//=/=/=/=/=/=/=/=/=/=/=/=/=/=/= createProduct =/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/
 const createProduct = async (req, res) => {
 
     try {
@@ -54,8 +29,8 @@ const createProduct = async (req, res) => {
 
         if (!Object.keys(data).length) return res.status(400).send({ status: false, message: "body is Required.." })
 
-
         if (!isValidData(title)) return res.status(400).send({ status: false, message: "title is Required.." })
+        // if (title  == 0) return res.status(400).send({ status: false, message: "title is Required.." })
 
         if (!/^(?=.*?[a-zA-Z])[,.! %?a-zA-Z\d ]+$/.test(title)) return res.status(400).send({ status: false, msg: `title is not a valid it can be aphaNumeric` });
 
@@ -78,6 +53,8 @@ const createProduct = async (req, res) => {
 
         if (Number(price) <= 0) return res.status(400).send({ status: false, message: " Price is not less than 0 " })
 
+        //-------  currencyId------- 
+
         if (currencyId) {
 
             if (currencyId.trim().length == 0) return res.status(400).send({ status: false, message: " currencyId is Required.." })
@@ -97,10 +74,7 @@ const createProduct = async (req, res) => {
         if (!currencyFormat) {
             data.currencyFormat = "₹"
         }
-
-
         if (isFreeShipping == 0) return res.status(400).send({ status: false, message: "isFreeShipping Box can't be empty..! please add True or False" })
-
         if (isFreeShipping) {
             if (!/(?:true|false|True|False)/.test(isFreeShipping)) return res.status(400).send({ status: false, message: `isFreeShipping can't be ${isFreeShipping} ..! please add True or False` })
             data.isFreeShipping = isFreeShipping.toLowerCase()
@@ -109,9 +83,7 @@ const createProduct = async (req, res) => {
         let fileData = files[0];
         if (!fileData) { return res.status(400).send({ msg: "Product Image Not found" }); }
         if (!/([/|.|\w|\s|-])*\.(?:jpg|jpeg|png|JPG|JPEG|PNG)/.test(fileData.originalname)) {
-            return res
-                .status(400)
-                .send({ status: false, msg: "productImage is valid only in JPG JPEG PNG." });
+            return res.status(400).send({ status: false, msg: "productImage is valid only in JPG JPEG PNG." });
         }
         if (files && files.length > 0) {
             let uploadedFileURL = await uploadFile(files[0]);
@@ -120,14 +92,13 @@ const createProduct = async (req, res) => {
             return res.status(400).send({ msg: "Product Image Not found" });
         }
 
-        if (style == 0) return res.status(400).send({ status: false, message: "style can't be empty..! please add style" })
-
+        if (style == 0) return res.status(400).send({ status: false, message: "style Box can't be empty..! please add style" })
         if (style) {
             if (!/^\s*[a-zA-Z ]{2,}\s*$/.test(style)) return res.status(400).send({ status: false, message: " Style is not valid " })
-            data.style = style.trim().split(" ").filter((word) => word).join(" ");
         }
+        data.style = style.trim().split(" ").filter((word) => word).join(" ");
 
-        if (availableSizes == 0) { return res.status(400).send({ status: false, msg: "AvailableSizes should not be empty" }) }
+        if (availableSizes == 0) { return res.status(400).send({ status: false, msg: "availableSizes should not be empty" }) }
 
         if (availableSizes) {
             data.availableSizes = availableSizes.toUpperCase()
@@ -135,32 +106,30 @@ const createProduct = async (req, res) => {
 
             for (let i = 0; i < check.length; i++) {
                 if (!(["S", "XS", "M", "X", "L", "XXL", "XL"].includes(check[i]))) {
-                    return res.status(400).send({ status: false, message: `the Size which you given ${check[i]} is not valid please enter valid Size` })
+                    return res.status(400).send({ status: false, message: `the Size which you given ${check[i]} is not valid plsase enter valid Size` })
                 }
             }
             data.availableSizes = data.availableSizes.split(" ")
         }
 
-        if (installments == 0) return res.status(400).send({ status: false, message: " Installments is empty" })
+        // if (installments == 0) return res.status(400).send({ status: false, message: " installments is empty" })
 
         if (installments) {
-            if ((Number(installments)) > Number(price)) return res.status(400).send({ status: false, message: " installments Should be less than price" })
+            if ((Number(installments)) >= Number(price)) return res.status(400).send({ status: false, message: " Installments Should be less than price" })
             if (Number(installments) < 0) return res.status(400).send({ status: false, message: " Installments is not less than 0 " })
-
             if (!Number.isInteger(Number(installments))) {
                 return res.status(400).send({ status: false, message: "Plz, enter valid format of installments it should be a integer" })
             }
-
         }
 
         const saveData = await productModel.create(data)
         res.status(201).send({ status: true, message: "Success", data: saveData })
 
     } catch (error) {
+    
         res.status(500).send({ status: false, message: error.message })
     }
 }
-
 
 //=/=/=/=/=/=/=/=/=/=/=/=/=/=/= getproductbyfilter =/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/
 

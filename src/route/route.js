@@ -6,46 +6,41 @@ const { getproductbyfilter, createProduct, getProductById, updateProductDetail, 
 const { createCart, updateCart, getCart, deleteCart } = require("../controller/cartController")
 const { createOrder, updateOrder } = require("../controller/orderController")
 
+//================================================================================================
 
-//==================== User ==============================//
-
+//---FEATURE I - User--------//
 router.post('/register', createUser)
-
 router.post('/login', loginUser)
-
 router.get('/user/:userId/profile', authenticate, getUser)
-
 router.put('/user/:userId/profile', authenticate, updateUserDetail)
+//================================================================================================
 
-//==================== product ===============================//
-
+//---- FEATTURE II - Product ------//
 router.post('/products', createProduct)
+router.get('/products', getproductbyfilter)
+router.get('/products/:productId', getProductById)
+router.put('/products/:productId', updateProductDetail)
+router.delete('/products/:productId', deleteProductById)
+//================================================================================================
 
-router.get("/products", getproductbyfilter)
+//---- FEATTURE III - Cart ------//
 
-router.get("/products/:productId", getProductById)
+router.post('/users/:userId/cart', createCart)
+router.put("/users/:userId/cart", updateCart)
+router.get('/users/:userId/cart', getCart)
+router.delete('/users/:userId/cart', deleteCart)
+//================================================================================================
 
-router.put("/products/:productId", updateProductDetail)
+//---- FEATURE IV ORDER ------//
 
-router.delete("/products/:productId", deleteProductById)
-
-//==================== Cart ===============================//
-
-router.post("/users/:userId/cart", authenticate, createCart)
-
-router.put("/users/:userId/cart", authenticate, updateCart)
-
-router.get('/users/:userId/cart',authenticate, getCart)
-
-router.delete('/users/:userId/cart',authenticate, deleteCart)
-
-//=========================== FEATURE - 4 ORDER =========================================//
-
-router.post("/users/:userId/orders", authenticate, createOrder)
-
-router.put("/users/:userId/orders",authenticate, updateOrder)
+router.post("/users/:userId/orders", createOrder)
+router.put("/users/:userId/orders", updateOrder)
 
 
+//================= BAD URL VALIDATION ============================================
+router.all("*", (req, res) => {
+    res.status(404).send({ msg: "NOT FOUND THIS URL" })
+})
 
 
 module.exports = router;
