@@ -25,7 +25,7 @@ const createCart = async (req, res) => {
 
         let findUser = await userModel.findOne({ _id: userId })
 
-        if (!findUser) return res.status(404).send({ status: false, message: "User not found" })
+        if (!findUser) return res.status(404).send({ status: false, message: "User is not found" })
 
         //// /------------------------------authorisation-----------------------------------
 
@@ -37,6 +37,7 @@ const createCart = async (req, res) => {
 
         let newCart = await cartModel.findOne({ userId: userId })
 
+        // create a new cart
         if (!newCart) {
 
             let findproduct = await productModel.findOne({ _id: productId, isDeleted: false })
@@ -58,6 +59,7 @@ const createCart = async (req, res) => {
 
         let isAvilabProduct = newCart.items.some(ele => ele.productId == productId);
 
+        // Product add in existing cart
         if (newCart) {
 
             let findproduct = await productModel.findOne({ _id: productId, isDeleted: false })
@@ -155,7 +157,7 @@ const updateCart = async function (req, res) {
 
         // <---------- remove product ---->
         if (!(removeProduct == 0 || removeProduct == 1)) {
-            return res.status(400).send({ status: false, message: `Sorryyy....! removeProduct Value should  0 = remove all || 1 = remove one  ` })
+            return res.status(400).send({ status: false, message: `Sorryyy....! removeProduct Value should  0 = remove all || 1 = remove one` })
         }
 
         let array = []
@@ -265,7 +267,7 @@ const deleteCart = async function (req, res) {
 
         let deleteCartItems = await cartModel.findOneAndUpdate({ userId: userId }, { $set: { items: [], totalPrice: 0, totalItems: 0 } }, { new: true })
 
-        return res.status(204).send({ status: true, message: "Cart deleted successfully", data: deleteCartItems })
+        return res.status(204).send({ status: true, message: "Cart deleted successfully" })
 
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message })

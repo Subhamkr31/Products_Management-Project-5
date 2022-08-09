@@ -11,21 +11,21 @@ const createOrder = async function (req, res) {
     try {
         const userId = req.params.userId
         const cartId = req.body.cartId
-    
+
         let data = {}
 
         //<------- userId Validation ----->
         if (userId.trim().length == 0) {
-            return res.status(400).send({ status: false, message: "Heeyyy... user! please provide me UserId" })
+            return res.status(400).send({ status: false, message: " please provide me UserId" })
         }
         if (!mongoose.isValidObjectId(userId)) {
-            return res.status(400).send({ status: false, message: `Heeyyy... user! ${userId} it's not valid UserId Please check Ones` })
+            return res.status(400).send({ status: false, message: ` ${userId} it's not valid UserId Please check Ones` })
         }
 
         const userData = await userModel.findById(userId)
 
         if (!userData) {
-            return res.status(404).send({ status: false, message: `Heeyyy...! There is No user With the ${userId} userId` })
+            return res.status(404).send({ status: false, message: `User is not found` })
         }
         data.userId = userId
 
@@ -36,27 +36,27 @@ const createOrder = async function (req, res) {
 
         //<-------- cartId Validation ----->
         if (!cartId || cartId.trim().length == 0) {
-            return res.status(400).send({ status: false, message: `Heeyyy...User! Without cartId you can't create Order` })
+            return res.status(400).send({ status: false, message: ` Without cartId you can't create Order` })
         }
 
         if (!mongoose.isValidObjectId(cartId)) {
-            return res.status(400).send({ status: false, message: `Heeyyy... user! ${cartId} it's not valid cartId Please check Ones` })
+            return res.status(400).send({ status: false, message: `${cartId} it's not valid cartId Please check Ones` })
         }
 
         const cartData = await cartModel.findById(cartId)
 
         if (!cartData) {
-            return res.status(404).send({ status: false, message: `Heeyyy...! There is No cart With the ${cartId} cartId please create cart` })
+            return res.status(404).send({ status: false, message: `There is No cart With the ${cartId} cartId please create cart` })
         }
 
         if (userId != cartData.userId) {
-            return res.status(404).send({ status: false, message: `Heeyyy... user! ${cartId} this cartId is not belongs to Logged In user` })
+            return res.status(404).send({ status: false, message: `${cartId} this cartId is not belongs to Logged In user` })
         }
 
         data.items = cartData.items
 
         if (cartData.items.length == 0) {
-            return res.status(400).send({ status: false, message: `Sorry... user! There is No Product in cart first add Product IN cart` })
+            return res.status(400).send({ status: false, message: `There is No Product in cart first add Product IN cart` })
         }
 
         const { items } = cartData
@@ -104,32 +104,32 @@ const updateOrder = async function (req, res) {
 
     try {
         let userId = req.params.userId
-        console.log(userId)
+        // console.log(userId)
         let data = req.body
         let { orderId, status } = data
-        if (!mongoose.isValidObjectId(userId)) return res.status(400).send({ status: false, message: "please enter valid userId " })
 
-        if (!Object.keys(data).length) return res.status(400).send({ status: false, message: "body is Required.." })
+        if (Object.keys(data).length == 0) return res.status(400).send({ status: false, message: "body is Required.." })
+        if (!mongoose.isValidObjectId(userId)) return res.status(400).send({ status: false, message: "please enter valid userId " })
 
         const userdb = await userModel.findOne({ _id: userId })
 
         if (!userdb) return res.status(404).send({ status: false, message: "user is not present" })
 
-         //<-------- Authorisation ------------------>
+        //<-------- Authorisation ------------------>
         if (userId != req.userDetail) return res.status(403).send({ status: false, message: "user not Authorized to place order " })
-
+        //------------------------------------------
         if (!orderId) return res.status(400).send({ status: false, message: "please enter orderId in body" })
 
         if (!mongoose.isValidObjectId(orderId)) return res.status(400).send({ status: false, message: "please enter valid OrderId " })
 
         if (!status) return res.status(400).send({ status: false, message: "Status is required.." })
         status = status.trim()
-        
+
         if (!["completed", "cancled"].includes(status)) return res.status(400).send({ status: false, message: "choose one of these (completed or cancled)" })
 
         const orderdb = await orderModel.findOne({ _id: orderId })
 
-        if (!orderdb) return res.status(404).send({ status: false, message: "order is  not present" })
+        if (!orderdb) return res.status(404).send({ status: false, message: "order is not present" })
 
         if (orderdb.status == "completed") return res.status(400).send({ status: false, message: "order is already completed,cannot update" })
 
@@ -141,10 +141,9 @@ const updateOrder = async function (req, res) {
 
             return res.status(400).send({ status: false, message: "this order cannot be cancelled" })
         }
-        else {
-            const update = await orderModel.findOneAndUpdate({ _id: orderId }, { $set: { status: status } }, { new: true })
-            return res.status(200).send({ status: true, message: 'Success', data: update })
-        }
+        const update = await orderModel.findOneAndUpdate({ _id: orderId }, { $set: { status: status } }, { new: true })
+        return res.status(200).send({ status: true, message: 'Success', data: update })
+
 
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message })
@@ -153,7 +152,7 @@ const updateOrder = async function (req, res) {
 }
 
 
-module.exports = {createOrder, updateOrder}
+module.exports = { createOrder, updateOrder }
 
 
 

@@ -7,20 +7,16 @@ const bcrypt = require('bcrypt');
 const userModel = require("../model/userModel");
 const jwt = require('jsonwebtoken')
 const mongoose = require("mongoose");
-const {uploadFile} = require("../aws/uploadFile")
+const { uploadFile } = require("../aws/uploadFile")
 
-const isValidRequestBody = function (requestBody) {
-  if (!requestBody) return false;
-  if (Object.keys(requestBody).length == 0) return false;
-  return true;
-};
 
+////////////---------------------------------------------------------------
 const isValidData = function (value) {
   if (typeof value === "undefined" || value === null) return false;
   if (typeof value === "string" && value.trim().length == 0) return false;
   return true;
 };
-
+////////////---------------------------------------------------------------
 
 //============================================= create user =====================================//
 const createUser = async function (req, res) {
@@ -31,7 +27,7 @@ const createUser = async function (req, res) {
 
     let files = req.files;
     //===== validate body ======//
-    if (!isValidRequestBody(data)) {
+    if (Object.keys(data).length == 0) {
       return res.status(400).send({ status: false, message: "Body cannot be empty" });
     }
 
@@ -40,7 +36,7 @@ const createUser = async function (req, res) {
       return res.status(400).send({ status: false, message: "please enter your first Name" });
     }
     if (!/^\s*[a-zA-Z ]{2,}\s*$/.test(fname)) {
-      return res.status(400).send({ status: false, message: `Heyyy....! ${fname} is not a valid first name`, });
+      return res.status(400).send({ status: false, message: `fname is not a valid first name`, });
     }
     data.fname = fname.trim().split(" ").filter((word) => word).join(" ");
 
@@ -49,7 +45,7 @@ const createUser = async function (req, res) {
       return res.status(400).send({ status: false, message: "please enter your last Name" });
     }
     if (!/^\s*[a-zA-Z ]{2,}\s*$/.test(lname)) {
-      return res.status(400).send({ status: false, message: `Heyyy....! ${lname} is not a valid  last name`, });
+      return res.status(400).send({ status: false, message: `lname is not a valid  last name`, });
     }
     data.lname = lname.trim().split(" ").filter((word) => word).join(" ");
 
@@ -57,12 +53,12 @@ const createUser = async function (req, res) {
     if (!isValidData(email)) { return res.status(400).send({ status: false, message: "please enter email" }); }
 
     if (!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(email)) {
-      return res.status(400).send({ status: false, message: `Heyyy....! ${email} is not a valid email` });
+      return res.status(400).send({ status: false, message: ` This email is not a valid email` });
     }
 
     let checkEmail = await userModel.findOne({ email: email });
     if (checkEmail) {
-      return res.status(400).send({ status: false, message: `Heyyy....! there already exists an account registered with ${email} email address` });
+      return res.status(400).send({ status: false, message: ` This ${email} email address already exist` });
     }
 
     data.email = email.trim();
@@ -87,11 +83,11 @@ const createUser = async function (req, res) {
       return res.status(400).send({ status: false, message: "please enter your mobile number" });
     }
     if (!/^\s*(?=[6789])[0-9]{10}\s*$/.test(phone)) {
-      return res.status(400).send({ status: false, message: `Heyyy....! ${phone} is not a valid phone` });
+      return res.status(400).send({ status: false, message: `phone number is not a valid phone` });
     }
     let checkPhone = await userModel.findOne({ phone: phone });
     if (checkPhone) {
-      return res.status(400).send({ status: false, message: `Heyyy....! there already exists an account registered with ${phone} phone` });
+      return res.status(400).send({ status: false, message: `This ${phone} phone number is already exist ` });
     }
 
     data.phone = phone.trim();
@@ -111,7 +107,7 @@ const createUser = async function (req, res) {
 
     //===== validate address ======//
     if (!data.address || data.address.trim().length == 0) {
-      return res.status(400).send({ status: false, msg: "please add address details  " });
+      return res.status(400).send({ status: false, msg: "please enter address details  " });
     }
     try {
       data.address = JSON.parse(data.address);
@@ -122,9 +118,7 @@ const createUser = async function (req, res) {
     if (!data.address.shipping) {             // no work
       return res.status(400).send({ status: false, msg: "please add shipping details  " });
     }
-    if (!data.address.billing) {                    // no work
-      return res.status(400).send({ status: false, msg: "please add billing details  " });
-    }
+
     if (!isValidData(data.address.shipping.street) || !/^\s*[a-zA-Z0-9 .,-:]{2,}\s*$/.test(data.address.shipping.street)) {
       return res.status(400).send({ status: false, message: "please add valid shipping street" });
     }
@@ -136,7 +130,9 @@ const createUser = async function (req, res) {
     if (!isValidData(data.address.shipping.pincode) || !/^[1-9]{1}[0-9]{2}[0-9]{3}$/.test(data.address.shipping.pincode)) {
       return res.status(400).send({ status: false, message: "please add valid shipping pincode" });
     }
-
+    if (!data.address.billing) {                    
+      return res.status(400).send({ status: false, msg: "please add billing details  " });
+    }
     if (!isValidData(data.address.billing.street) || !/^\s*[a-zA-Z0-9 .,-:]{2,}\s*$/.test(data.address.billing.street)) {
       return res.status(400).send({ status: false, message: "please add valid billing street" });
     }
@@ -148,7 +144,7 @@ const createUser = async function (req, res) {
     if (!isValidData(data.address.billing.pincode) || !/^[1-9]{1}[0-9]{2}[0-9]{3}$/.test(data.address.billing.pincode)) {
       return res.status(400).send({ status: false, message: "please add valid billing pincode" });
     }
-
+  
     //===== create user ======//
     let createUserDoc = await userModel.create(data);
     return res.status(201).send({ status: true, message: "User created Successfully", data: createUserDoc });
@@ -187,7 +183,6 @@ let loginUser = async function (req, res) {
     }
     let userData = await userModel.findOne({ email: email });
 
-
     if (!userData) {
       return res.status(400).send({ status: false, message: "Email or the Password doesn't match" });
     }
@@ -206,10 +201,9 @@ let loginUser = async function (req, res) {
 
     );
 
-    {
       res.status(200).send({ status: true, message: "User login successfull", data: { userId: userId, Token: token } });
 
-    }
+    
   } catch (err) {
     res.status(500).send({ status: false, message: err.message });
   }
@@ -221,7 +215,7 @@ let loginUser = async function (req, res) {
 const getUser = async function (req, res) {
   try {
     let userId = req.params.userId
-    if (!isValidObjectId(userId)) {
+    if (!mongoose.isValidObjectId(userId)) {
       return res.status(400).send({ status: false, message: " enter valid UserId" });
     }
     const getUser = await userModel.findOne({ _id: userId })
@@ -261,7 +255,8 @@ const updateUserDetail = async (req, res) => {
     }
     let { fname, lname, email, profileImage, phone, password, address } = data
 
-    if(Object.keys(data).length == 0) return res.status(400).send({ status: false, message: 'Select any filter ' })
+    if (Object.keys(data).length == 0) return res.status(400).send({ status: false, message: 'Select any filter key ' })
+
     if (!mongoose.isValidObjectId(userId)) return res.status(400).send({ status: false, message: 'UserId is not valid' })
 
     const findUser = await userModel.findOne({ _id: userId })  //doubt
@@ -277,13 +272,13 @@ const updateUserDetail = async (req, res) => {
     if (fname == 0) return res.status(400).send({ status: false, message: "fname is empty" })
     if (fname) {
       if (!/^\s*[a-zA-Z]{2,}\s*$/.test(fname)) {
-        return res.status(400).send({ status: false, message: `Heyyy....! ${fname} is not a valid first name` });
+        return res.status(400).send({ status: false, message: ` ${fname} is not a valid first name` });
       }
     }
     if (lname == 0) return res.status(400).send({ status: false, message: "lname is empty" })
     if (lname) {
       if (!/^\s*[a-zA-Z]{2,}\s*$/.test(lname)) {
-        return res.status(400).send({ status: false, message: `Heyyy....! ${lname} is not a valid last name` });
+        return res.status(400).send({ status: false, message: ` ${lname} is not a valid last name` });
       }
 
     }
