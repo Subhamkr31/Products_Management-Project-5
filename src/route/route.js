@@ -24,7 +24,6 @@ router.delete('/products/:productId', deleteProductById)
 //================================================================================================
 
 //---- FEATTURE III - Cart ------//
-
 router.post('/users/:userId/cart',authenticate, createCart)
 router.put("/users/:userId/cart",authenticate, updateCart)
 router.get('/users/:userId/cart',authenticate, getCart)
@@ -32,7 +31,6 @@ router.delete('/users/:userId/cart',authenticate, deleteCart)
 //================================================================================================
 
 //---- FEATURE IV ORDER ------//
-
 router.post("/users/:userId/orders",authenticate, createOrder)
 router.put("/users/:userId/orders",authenticate, updateOrder)
 
